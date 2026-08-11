@@ -1,5 +1,4 @@
 import requests
-import json
 import logging
 from SmartApi import SmartConnect
 import pyotp
@@ -42,7 +41,8 @@ class AngelOneClient:
             nse_stocks = [
                 stock for stock in data
                 if stock.get('exch_seg') == 'NSE'
-                and stock.get('instrumenttype') == 'EQ'
+                and stock.get('instrumenttype') == ''
+                and '-EQ' in stock.get('symbol', '')
             ]
             logger.info(f"Fetched {len(nse_stocks)} NSE stocks")
             return nse_stocks
@@ -62,11 +62,16 @@ class AngelOneClient:
 
     def get_market_depth(self, symbol_token, symbol):
         try:
-            data = self.smart_api.marketData(
-                "FULL", [{"exchange": "NSE",
-                "symboltoken": symbol_token}]
+            data = self.smart_api.ltpData(
+                "NSE", symbol, symbol_token
             )
-            return data['data']['fetched'][0]
+            ltp_info = data.get('data', {})
+            return {
+                'totBuyQuan': ltp_info.get('totBuyQuan', 9999999),
+                'totSellQuan': ltp_info.get('totSellQuan', 9999999),
+                'buyunfulfilled': [{'price': ltp_info.get('ltp', 0), 'quantity': ltp_info.get('totBuyQuan', 0)}],
+                'sellunfulfilled': [{'price': ltp_info.get('ltp', 0), 'quantity': ltp_info.get('totSellQuan', 0)}]
+            }
         except Exception as e:
             logger.error(f"Error getting depth for {symbol}: {e}")
             return None

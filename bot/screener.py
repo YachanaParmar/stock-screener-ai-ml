@@ -34,7 +34,7 @@ class StockScreener:
         print(f"📊 Total NSE stocks: {len(all_stocks)}")
         screened = []
 
-        for i, stock in enumerate(all_stocks[:100]):
+        for i, stock in enumerate(all_stocks[:50]):
             try:
                 symbol = stock.get('symbol', '')
                 token = stock.get('token', '')
@@ -120,7 +120,7 @@ class StockScreener:
                 print(f"✅ {symbol} | LTP: {ltp} | "
                       f"Signal: {signal or 'NONE'}")
 
-                time.sleep(0.3)  # Rate limiting
+                time.sleep(0.1)  # Rate limiting
 
             except Exception as e:
                 logger.error(f"Error processing {symbol}: {e}")
